@@ -24,6 +24,7 @@ string read_(tcp::socket & socket) {
 int main() {
     std::cout<<"This is a matrix solver."<<std::endl;
     boost::asio::io_service io_service;
+    // the alternative approach to the following part to instantiate first and then bind the port
     tcp::acceptor acceptor_(io_service, tcp::endpoint(tcp::v6(), 80)); //acceptor represents acceptor socket which is pasisve
     while (1) {
         try {
