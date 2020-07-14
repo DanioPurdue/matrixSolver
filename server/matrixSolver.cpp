@@ -6,7 +6,7 @@ using ip::tcp;
 using std::string;
 using std::cout;
 using std::endl;
-
+#define MAXCONNSIZE 10
 /* send a mesage */
 void send_(tcp::socket & socket, const string& message) {
     const string msg = message + "\n";
@@ -27,13 +27,14 @@ int main() {
     tcp::acceptor acceptor_(io_service, tcp::endpoint(tcp::v6(), 80)); //acceptor represents acceptor socket which is pasisve
     while (1) {
         try {
-        tcp::socket socket_(io_service);
-        acceptor_.accept(socket_);
-        string msg = read_(socket_);
-        cout << "server side message: " << msg << endl;
-        //write operation
-        send_(socket_, "hello this is a matrix solver");
-        cout << "request has been sent" << endl;
+            tcp::socket socket_(io_service); //instantiate asocket that used for teh connection
+            acceptor_.listen(MAXCONNSIZE);
+            acceptor_.accept(socket_); //switched to the active socket and start the connection
+            string msg = read_(socket_);
+            cout << "server side message: " << msg << endl;
+            //write operation
+            send_(socket_, "hello this is a matrix solver");
+            cout << "request has been sent" << endl;
         } catch(boost::system::system_error & sysError) {
             cout << "System Error | Error Code: " <<sysError.code() << " | Error Message: " << sysError.what()<<endl;
         } catch (...) {
