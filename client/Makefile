@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -Wall -Wextra -std=c++11
+CFLAGS = -Wall -Wextra -std=c++14
 OBJFILES = matrixClient.o
 TARGET = matrixClient
 BOOSTLIB = -L /usr/lib/ -lboost_system -lboost_thread -lpthread

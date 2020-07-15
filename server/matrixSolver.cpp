@@ -15,7 +15,7 @@ void send_(tcp::socket & socket, const string& message) {
 
 string read_(tcp::socket & socket) {
     boost::asio::streambuf buf;
-    boost::asio::read_until(socket, buf, "\n ｜ ");
+    boost::asio::read_until(socket, buf, "\n");
     string data = boost::asio::buffer_cast<const char*>(buf.data());
     return data;
 }
