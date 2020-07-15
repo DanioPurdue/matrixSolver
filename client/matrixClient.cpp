@@ -8,11 +8,13 @@ using std::cout;
 using std::endl;
 using std::size_t;
 
-void writeToSocket(asio::ip::tcp::socket& sock, char * msgPtr, size_t msgSize) {
-    std::unique_ptr<char[]> charPtr = std::make_unique<char []>(msgSize+1);
-    memcpy(charPtr.get(), msgPtr, msgSize);
+void writeToSocket(asio::ip::tcp::socket& sock, char * msgPtr, size_t msgSize, size_t height, size_t width) {
+    string dim = std::to_string(height) + " " + std::to_string(width) + '|';
+    std::unique_ptr<char[]> charPtr = std::make_unique<char []>(msgSize+1+dim.length());
+    memcpy(charPtr.get(), dim.c_str(), dim.length()); //first copy the matrix dimension
+    memcpy(charPtr.get()+dim.length(), msgPtr, msgSize); //copy the actual data
     *(charPtr.get()+msgSize) = '\n';
-    asio::write(sock, asio::buffer((void * ) (charPtr.get()), msgSize+1));
+    asio::write(sock, asio::buffer((void * ) (charPtr.get()), msgSize+1+dim.length()));
 }
 
 int main(int argc, char *argv[]) {
@@ -31,7 +33,7 @@ int main(int argc, char *argv[]) {
         asio::io_service ios;
         asio::ip::tcp::socket sock(ios, ep.protocol());
         sock.connect(ep);
-        writeToSocket(sock, (char *) x, arraySize_inByte);
+        writeToSocket(sock, (char *) x, arraySize_inByte, 3, 4);
     } catch (boost::system::system_error &se) {
         cout << "System Error Occured | " << se.what() << endl;
         return se.code().value();

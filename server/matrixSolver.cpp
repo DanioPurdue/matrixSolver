@@ -1,6 +1,7 @@
 #include <iostream>
 #include <boost/asio.hpp>
 #include <boost/system/error_code.hpp>
+#include "matrix/Matrix.hpp"
 using namespace boost::asio;
 using ip::tcp;
 using std::string;
@@ -16,8 +17,15 @@ void send_(tcp::socket & socket, const string& message) {
 string read_(tcp::socket & socket) {
     boost::asio::streambuf buf;
     boost::asio::read_until(socket, buf, "\n");
-    string data = boost::asio::buffer_cast<const char*>(buf.data());
-    return data;
+    const char * rawBytes = boost::asio::buffer_cast<const char*>(buf.data());
+    //get the dimension of the matrix
+    string dimenData;
+    for (size_t idx = 0; idx < buf.size(); idx++) {
+        if (rawBytes[idx] == '|') {
+            dimenData = string(rawBytes, idx);
+        }
+    }
+    return dimenData;
 }
 
 /* recieve a message */
@@ -32,7 +40,7 @@ int main() {
             acceptor_.listen(MAXCONNSIZE);
             acceptor_.accept(socket_); //switched to the active socket and start the connection
             string msg = read_(socket_);
-            cout << "server side message: " << msg << endl;
+            cout << "Message Recieved: " << msg << endl;
             //write operation
             send_(socket_, "hello this is a matrix solver");
             cout << "request has been sent" << endl;
