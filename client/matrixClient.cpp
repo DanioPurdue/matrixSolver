@@ -13,7 +13,7 @@ void writeToSocket(asio::ip::tcp::socket& sock, char * msgPtr, size_t msgSize, s
     std::unique_ptr<char[]> charPtr = std::make_unique<char []>(msgSize+1+dim.length());
     memcpy(charPtr.get(), dim.c_str(), dim.length()); //first copy the matrix dimension
     memcpy(charPtr.get()+dim.length(), msgPtr, msgSize); //copy the actual data
-    *(charPtr.get()+msgSize) = '\n';
+    charPtr[msgSize+dim.length()] = '\n';
     asio::write(sock, asio::buffer((void * ) (charPtr.get()), msgSize+1+dim.length()));
 }
 
