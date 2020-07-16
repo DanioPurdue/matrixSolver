@@ -40,10 +40,8 @@ Matrix read_(tcp::socket & socket) {
     size_t rowNum = std::stoi(dimenData.substr(0, spaceLoc));
     size_t colNum = std::stoi(dimenData.substr(spaceLoc+1, dimenData.length() - spaceLoc - 1));
     cout << "test | dimension row: " << rowNum << " col: " << colNum << endl;
-    
     //create the matrix object
-    Matrix matrix(rowNum, colNum, rawBytes+dataIdx);
-    return matrix;
+    return Matrix(rowNum, colNum, rawBytes+dataIdx);
 }
 
 /* recieve a message */

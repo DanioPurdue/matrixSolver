@@ -1,11 +1,15 @@
 #include <cstring>
 #include "Matrix.hpp"
 #include <string>
+#include <iostream>
+
 Matrix::Matrix(size_t rowNum, size_t colNum, const char * rawData): _rowNum(rowNum), _colNum(colNum), _matrixData(new int [_rowNum*_colNum]) {
+    std::cout << "matrix constructor is called" << std::endl;
     memcpy(_matrixData.get(), rawData, _colNum * _rowNum * sizeof(int));
 }
 
 Matrix::Matrix(const Matrix & matrix) {
+    std::cout << "matrix copy constructor has been called" << std::endl;
     if (this == &matrix) {
         return;
     }
