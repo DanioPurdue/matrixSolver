@@ -3,10 +3,12 @@
 #include <boost/system/error_code.hpp>
 #include <string>
 #include "matrix/Matrix.hpp"
+#include "server/SolverRequest.hpp"
 using namespace boost::asio;
 using ip::tcp;
 using std::string;
 using std::cout;
+using std::cerr;
 using std::endl;
 #define MAXCONNSIZE 10
 /* send a mesage */
@@ -15,9 +17,27 @@ void send_(tcp::socket & socket, const string& message) {
     boost::asio::write( socket, boost::asio::buffer(message) );
 }
 
-Matrix read_(tcp::socket & socket) {
+solverreq::request read_request_(tcp::socket & socket, boost::system::error_code & ec) {
     boost::asio::streambuf buf;
-    boost::asio::read_until(socket, buf, "\n");
+    boost::asio::read(socket, buf, ec);
+    if (ec != boost::asio::error::eof) {
+        cerr << "Error Code" << ec << endl;
+        throw string("fail to read the request from client");
+    }
+    const solverreq::request * currReqPtr = boost::asio::buffer_cast<const solverreq::request*>(buf.data());
+    if (*currReqPtr != solverreq::inverse && *currReqPtr != solverreq::solve) {
+        throw string("invalid request type");
+    }
+    return *currReqPtr;
+}
+
+Matrix read_matrix_(tcp::socket & socket, boost::system::error_code & ec) {
+    boost::asio::streambuf buf;
+    boost::asio::read(socket, buf, ec);
+    if (ec != boost::asio::error::eof) {
+        cerr << "Error Code" << ec << endl;
+        throw string("fail to read the request from client");
+    }
     const char * rawBytes = boost::asio::buffer_cast<const char *>(buf.data());
     
     //get the dimension of the matrix
@@ -46,7 +66,11 @@ Matrix read_(tcp::socket & socket) {
 
 /* recieve a message */
 int main() {
+    if (solverreq::inverse != solverreq::solve) {
+        std::cout<<"testing enum" << endl;
+    }
     std::cout<<"This is a matrix solver."<<std::endl;
+    boost::system::error_code ec;
     boost::asio::io_service io_service;
     // the alternative approach to the following part to instantiate first and then bind the port
     tcp::acceptor acceptor_(io_service, tcp::endpoint(tcp::v6(), 80)); //acceptor represents acceptor socket which is pasisve
@@ -55,7 +79,9 @@ int main() {
             tcp::socket socket_(io_service); //instantiate asocket that used for teh connection
             acceptor_.listen(MAXCONNSIZE);
             acceptor_.accept(socket_); //switched to the active socket and start the connection
-            Matrix sampleMatrix = read_(socket_);
+            solverreq::request req = read_request_(socket_, ec);
+            cout<<"Show request: " << req << endl;
+            Matrix sampleMatrix = read_matrix_(socket_, ec);
             cout << "test | sample matrix: " << sampleMatrix.to_string() << endl;
             //write operation
             send_(socket_, "hello this is a matrix solver");
