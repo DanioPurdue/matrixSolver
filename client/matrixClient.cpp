@@ -16,12 +16,12 @@ void writeToSocketArr_(asio::ip::tcp::socket& sock, char * msgPtr, size_t msgSiz
     memcpy(charPtr.get()+dim.length(), msgPtr, msgSize); //copy the actual data
     charPtr[msgSize+dim.length()] = '\n';
     asio::write(sock, asio::buffer((void * ) (charPtr.get()), msgSize+1+dim.length()));
-    sock.shutdown(asio::socket_base::shutdown_send);
+    // sock.shutdown(asio::socket_base::shutdown_send);
 }
 
 void write_to_sock_request_(asio::ip::tcp::socket& sock, solverreq::request req) {
     asio::write(sock, asio::buffer((void * ) (&req), sizeof(req)));
-    sock.shutdown(asio::socket_base::shutdown_send);
+    // sock.shutdown(asio::socket_base::shutdown_send);
 }
 
 int main(int argc, char *argv[]) {
@@ -40,8 +40,11 @@ int main(int argc, char *argv[]) {
         asio::io_service ios;
         asio::ip::tcp::socket sock(ios, ep.protocol());
         sock.connect(ep);
+        cout << "test | send request type." << endl;
         write_to_sock_request_(sock, solverreq::inverse);
+        cout << "test | send matrices." << endl;
         writeToSocketArr_(sock, (char *) x, arraySize_inByte, 3, 4);
+        cout << "test | done sending them." << endl;
     } catch (boost::system::system_error &se) {
         cout << "System Error Occured | " << se.what() << endl;
         return se.code().value();

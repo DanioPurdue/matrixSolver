@@ -18,17 +18,13 @@ void send_(tcp::socket & socket, const string& message) {
 }
 
 solverreq::request read_request_(tcp::socket & socket, boost::system::error_code & ec) {
-    boost::asio::streambuf buf;
-    boost::asio::read(socket, buf, ec);
-    if (ec != boost::asio::error::eof) {
-        cerr << "Error Code" << ec << endl;
-        throw string("fail to read the request from client");
-    }
-    const solverreq::request * currReqPtr = boost::asio::buffer_cast<const solverreq::request*>(buf.data());
-    if (*currReqPtr != solverreq::inverse && *currReqPtr != solverreq::solve) {
+    // boost::asio::streambuf buf;
+    solverreq::request req;
+    boost::asio::read(socket, boost::asio::buffer(&req, sizeof(solverreq::request)), ec);
+    if (req != solverreq::inverse && req != solverreq::solve) {
         throw string("invalid request type");
     }
-    return *currReqPtr;
+    return req;
 }
 
 Matrix read_matrix_(tcp::socket & socket, boost::system::error_code & ec) {
@@ -39,7 +35,7 @@ Matrix read_matrix_(tcp::socket & socket, boost::system::error_code & ec) {
         throw string("fail to read the request from client");
     }
     const char * rawBytes = boost::asio::buffer_cast<const char *>(buf.data());
-    
+    cout << "test | print raw data: " << buf.size() << endl;
     //get the dimension of the matrix
     string dimenData;
     size_t dataIdx;
@@ -65,10 +61,7 @@ Matrix read_matrix_(tcp::socket & socket, boost::system::error_code & ec) {
 }
 
 /* recieve a message */
-int main() {
-    if (solverreq::inverse != solverreq::solve) {
-        std::cout<<"testing enum" << endl;
-    }
+int main() { 
     std::cout<<"This is a matrix solver."<<std::endl;
     boost::system::error_code ec;
     boost::asio::io_service io_service;
