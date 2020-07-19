@@ -16,12 +16,38 @@ void writeToSocketArr_(asio::ip::tcp::socket& sock, char * msgPtr, size_t msgSiz
     memcpy(charPtr.get()+dim.length(), msgPtr, msgSize); //copy the actual data
     charPtr[msgSize+dim.length()] = '\n';
     asio::write(sock, asio::buffer((void * ) (charPtr.get()), msgSize+1+dim.length()));
-    // sock.shutdown(asio::socket_base::shutdown_send);
 }
 
 void write_to_sock_request_(asio::ip::tcp::socket& sock, solverreq::request req) {
     asio::write(sock, asio::buffer((void * ) (&req), sizeof(req)));
-    // sock.shutdown(asio::socket_base::shutdown_send);
+}
+
+/*
+* Read the result as a string if the dimension is 0, 0 | <- this means that the result is not successful.
+*/
+Matrix parse_matrix(const char * rawBytes, size_t & offset, size_t total_size) {
+    //get the dimension of the matrix
+    string dimenData;
+    for (size_t idx = offset; idx < total_size; idx++) {
+        if (rawBytes[idx] == '|') {
+            dimenData = string(rawBytes, idx);
+            offset = idx+1;
+            break;
+        }
+    }
+
+    if (dimenData.length() == 0) { 
+        throw string("wrong matrix format");
+    }
+    //get the dimension
+    size_t spaceLoc = dimenData.find(" ");
+    size_t rowNum = std::stoi(dimenData.substr(0, spaceLoc));
+    size_t colNum = std::stoi(dimenData.substr(spaceLoc+1, dimenData.length() - spaceLoc - 1));
+    cout << "test | dimension row: " << rowNum << " col: " << colNum << endl;
+    size_t matrixSize(sizeof(float) * rowNum * colNum);
+    offset += matrixSize;
+    //create the matrix object
+    return Matrix(rowNum, colNum, rawBytes+offset-matrixSize);
 }
 
 int main(int argc, char *argv[]) {
@@ -32,7 +58,7 @@ int main(int argc, char *argv[]) {
     //obtain the server ip address and port number from the command line 
     string ipAddr = argv[1];
     short portNum = boost::lexical_cast<short>(argv[2]);
-    int x[3][4] = {0, 1 ,2 ,3 ,4 , 5 , 6 , 7 , 8 , 9 , 10 , 11};
+    float x[3][4] = {0, 1 ,2.1 ,3 ,4 , 5 , 6 , 7 , 8 , 9 , 10 , 11};
     size_t arraySize_inByte = sizeof(x);
     string hello("HelloWorld\n");
     try {

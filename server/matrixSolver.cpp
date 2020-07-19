@@ -11,6 +11,7 @@ using std::cout;
 using std::cerr;
 using std::endl;
 #define MAXCONNSIZE 10
+
 /* send a mesage */
 void send_(tcp::socket & socket, const string& message) {
     const string msg = message + "\n";
@@ -27,6 +28,31 @@ solverreq::request read_request_(tcp::socket & socket, boost::system::error_code
     return req;
 }
 
+Matrix parse_matrix(const char * rawBytes, size_t & offset, size_t total_size) {
+    //get the dimension of the matrix
+    string dimenData;
+    for (size_t idx = offset; idx < total_size; idx++) {
+        if (rawBytes[idx] == '|') {
+            dimenData = string(rawBytes, idx);
+            offset = idx+1;
+            break;
+        }
+    }
+
+    if (dimenData.length() == 0) { 
+        throw string("wrong matrix format");
+    }
+    //get the dimension
+    size_t spaceLoc = dimenData.find(" ");
+    size_t rowNum = std::stoi(dimenData.substr(0, spaceLoc));
+    size_t colNum = std::stoi(dimenData.substr(spaceLoc+1, dimenData.length() - spaceLoc - 1));
+    cout << "test | dimension row: " << rowNum << " col: " << colNum << endl;
+    size_t matrixSize(sizeof(float) * rowNum * colNum);
+    offset += matrixSize;
+    //create the matrix object
+    return Matrix(rowNum, colNum, rawBytes+offset-matrixSize);
+}
+
 Matrix read_matrix_(tcp::socket & socket, boost::system::error_code & ec) {
     boost::asio::streambuf buf;
     boost::asio::read(socket, buf, ec);
@@ -36,28 +62,8 @@ Matrix read_matrix_(tcp::socket & socket, boost::system::error_code & ec) {
     }
     const char * rawBytes = boost::asio::buffer_cast<const char *>(buf.data());
     cout << "test | print raw data: " << buf.size() << endl;
-    //get the dimension of the matrix
-    string dimenData;
-    size_t dataIdx;
-    for (size_t idx = 0; idx < buf.size(); idx++) {
-        if (rawBytes[idx] == '|') {
-            dimenData = string(rawBytes, idx);
-            dataIdx = idx+1;
-            break;
-        }
-    }
-
-    if (dimenData.length() == 0) { 
-        throw string("wrong matrix format");
-    }
-    
-    //get the dimension
-    size_t spaceLoc = dimenData.find(" ");
-    size_t rowNum = std::stoi(dimenData.substr(0, spaceLoc));
-    size_t colNum = std::stoi(dimenData.substr(spaceLoc+1, dimenData.length() - spaceLoc - 1));
-    cout << "test | dimension row: " << rowNum << " col: " << colNum << endl;
-    //create the matrix object
-    return Matrix(rowNum, colNum, rawBytes+dataIdx);
+    size_t offset(0);
+    return parse_matrix(rawBytes, offset, buf.size());
 }
 
 /* recieve a message */
@@ -74,7 +80,17 @@ int main() {
             acceptor_.accept(socket_); //switched to the active socket and start the connection
             solverreq::request req = read_request_(socket_, ec);
             cout<<"Show request: " << req << endl;
-            Matrix sampleMatrix = read_matrix_(socket_, ec);
+            boost::asio::streambuf buf;
+            boost::asio::read(socket_, buf, ec);
+            const char * rawBytes = boost::asio::buffer_cast<const char *>(buf.data());
+            size_t offset(0);
+            if (req == solverreq::inverse) {
+                Matrix mat1 = parse_matrix(rawBytes, offset, buf.size());
+            } else if (req == solverreq::solve) {
+                Matrix mat1 = parse_matrix(rawBytes, offset, but.size());
+                Matrix mat2 = parse_matrix(rawBytes, offset, but.size());
+            }
+
             cout << "test | sample matrix: " << sampleMatrix.to_string() << endl;
             //write operation
             send_(socket_, "hello this is a matrix solver");

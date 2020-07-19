@@ -3,9 +3,9 @@
 #include <string>
 #include <iostream>
 
-Matrix::Matrix(size_t rowNum, size_t colNum, const char * rawData): _rowNum(rowNum), _colNum(colNum), _matrixData(new int [_rowNum*_colNum]) {
+Matrix::Matrix(size_t rowNum, size_t colNum, const char * rawData): _rowNum(rowNum), _colNum(colNum), _matrixData(new float [_rowNum*_colNum]) {
     std::cout << "matrix constructor is called" << std::endl;
-    memcpy(_matrixData.get(), rawData, _colNum * _rowNum * sizeof(int));
+    memcpy(_matrixData.get(), rawData, _colNum * _rowNum * sizeof(float));
 }
 
 Matrix::Matrix(const Matrix & matrix) {
@@ -15,8 +15,8 @@ Matrix::Matrix(const Matrix & matrix) {
     }
     _colNum = matrix._colNum;
     _rowNum = matrix._rowNum;
-    _matrixData.reset(new int[_colNum * _rowNum]);
-    memcpy(_matrixData.get(), matrix._matrixData.get(), _colNum * _rowNum * sizeof(int));
+    _matrixData.reset(new float[_colNum * _rowNum]);
+    memcpy(_matrixData.get(), matrix._matrixData.get(), _colNum * _rowNum * sizeof(float));
     return;
 }
 
