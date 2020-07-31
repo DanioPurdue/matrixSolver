@@ -87,11 +87,9 @@ int main() {
             if (req == solverreq::inverse) {
                 Matrix mat1 = parse_matrix(rawBytes, offset, buf.size());
             } else if (req == solverreq::solve) {
-                Matrix mat1 = parse_matrix(rawBytes, offset, but.size());
-                Matrix mat2 = parse_matrix(rawBytes, offset, but.size());
+                Matrix mat1 = parse_matrix(rawBytes, offset, buf.size());
+                Matrix mat2 = parse_matrix(rawBytes, offset, buf.size());
             }
-
-            cout << "test | sample matrix: " << sampleMatrix.to_string() << endl;
             //write operation
             send_(socket_, "hello this is a matrix solver");
             cout << "request has been sent" << endl;
