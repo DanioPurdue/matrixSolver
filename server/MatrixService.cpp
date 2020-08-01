@@ -7,7 +7,7 @@ MatrixService::Service(std::shared_ptr<asio::ip::tcp::socket> sock):m_sock(sock)
 //the start handling has two function call, it first parse and figure out the request method, 
 //based on the request method, it figure out the right approach.
 void MatrixService::StartHandling() {
-    asio::async_read(*m_sock.get(), boost::asio::buffer(&req, sizeof(solverreq::reqeust)), 
+    asio::async_read(*m_sock.get(), boost::asio::buffer(&req, sizeof(solverreq::request)), 
     [this](const boost::system::error_code& ec, std::size_t bytes_transferred)
     {
         //check the request type of the first read
@@ -22,6 +22,7 @@ void MatrixService::StartHandling() {
             onFinish();
             return;
         } else {
+            // TODO:: need to make decision based on the request type
             boost::asio::streambuf buf;
             boost::asio::async_read(*m_sock.get(), buf, [this, &buf](const boost::system::error_code& ec, std::size_t bytes_transferred){
                 if (ec != 0) {
@@ -52,7 +53,6 @@ void MatrixService::onRequestReceived(const boost::system::error_code& ec, std::
 
     //process the request
     m_response = ProcessRequest(m_request);
-
     // initiate asynchronous write operation
     asio::async_write(*m_sock.get(), asio::buffer(m_response), [this](
         const boost::system::error_code& ec,
