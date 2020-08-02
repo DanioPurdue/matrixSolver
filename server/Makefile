@@ -2,7 +2,7 @@
 CC = g++
 PROJPATH = ..
 CFLAGS = -Wall -Wextra -std=c++11 -I$(PROJPATH)
-OBJFILES = matrixSolver.o matrix.o
+OBJFILES = matrixSolver.o matrix.o matrixService.o
 TARGET = matrixSolver
 BOOSTLIB = -L /usr/lib/ -lboost_system -lboost_thread -lpthread
 $(TARGET): $(OBJFILES)
@@ -10,6 +10,9 @@ $(TARGET): $(OBJFILES)
 
 matrixSolver.o: matrixSolver.cpp
 	$(CC) $(CFLAGS) -c matrixSolver.cpp
+
+matrixService.o: MatrixService.cpp
+	$(CC) $(CFLAGS) -c MatrixService.cpp
 
 matrix.o: $(PROJPATH)/matrix/Matrix.cpp
 	$(CC) $(CFLAGS) -c $(PROJPATH)/matrix/Matrix.cpp

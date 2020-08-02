@@ -4,6 +4,7 @@
 #include <string>
 #include "matrix/Matrix.hpp"
 #include "server/SolverRequest.hpp"
+#include "server/MatrixService.hpp"
 using namespace boost::asio;
 using ip::tcp;
 using std::string;
@@ -46,7 +47,7 @@ Matrix parse_matrix(const char * rawBytes, size_t & offset, size_t total_size) {
     size_t spaceLoc = dimenData.find(" ");
     size_t rowNum = std::stoi(dimenData.substr(0, spaceLoc));
     size_t colNum = std::stoi(dimenData.substr(spaceLoc+1, dimenData.length() - spaceLoc - 1));
-    cout << "test | dimension row: " << rowNum << " col: " << colNum << endl;
+    std::cout << "test | dimension row: " << rowNum << " col: " << colNum << std::endl;
     size_t matrixSize(sizeof(float) * rowNum * colNum);
     offset += matrixSize;
     //create the matrix object
@@ -68,30 +69,19 @@ Matrix read_matrix_(tcp::socket & socket, boost::system::error_code & ec) {
 
 /* recieve a message */
 int main() { 
-    std::cout<<"This is a matrix solver."<<std::endl;
+    int port_num = 80;
+    std::cout<<"This is a matrix solver. Port num: " << port_num <<std::endl;
     boost::system::error_code ec;
     boost::asio::io_service io_service;
     // the alternative approach to the following part to instantiate first and then bind the port
-    tcp::acceptor acceptor_(io_service, tcp::endpoint(tcp::v6(), 80)); //acceptor represents acceptor socket which is pasisve
+    tcp::acceptor acceptor_(io_service, tcp::endpoint(tcp::v6(), port_num)); //acceptor represents acceptor socket which is pasisve
     while (1) {
         try {
             tcp::socket socket_(io_service); //instantiate asocket that used for teh connection
+            std::shared_ptr<asio::ip::tcp::socket> sock(new asio::ip::tcp::socket(io_service));
             acceptor_.listen(MAXCONNSIZE);
-            acceptor_.accept(socket_); //switched to the active socket and start the connection
-            solverreq::request req = read_request_(socket_, ec);
-            cout<<"Show request: " << req << endl;
-            boost::asio::streambuf buf;
-            boost::asio::read(socket_, buf, ec);
-            const char * rawBytes = boost::asio::buffer_cast<const char *>(buf.data());
-            size_t offset(0);
-            if (req == solverreq::inverse) {
-                Matrix mat1 = parse_matrix(rawBytes, offset, buf.size());
-            } else if (req == solverreq::solve) {
-                Matrix mat1 = parse_matrix(rawBytes, offset, buf.size());
-                Matrix mat2 = parse_matrix(rawBytes, offset, buf.size());
-            }
-            //write operation
-            send_(socket_, "hello this is a matrix solver");
+            acceptor_.accept(*sock.get()); //switched to the active socket and start the connection
+            (new MatrixService(sock))->StartHandling();
             cout << "request has been sent" << endl;
         } catch(boost::system::system_error & sysError) {
             cout << "System Error | Error Code: " <<sysError.code() << " | Error Message: " << sysError.what()<<endl;

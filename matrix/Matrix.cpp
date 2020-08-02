@@ -20,6 +20,17 @@ Matrix::Matrix(const Matrix & matrix) {
     return;
 }
 
+Matrix& Matrix::operator=(const Matrix& matrix) {
+   if (this == &matrix) {
+        return *this;
+    }
+    _colNum = matrix._colNum;
+    _rowNum = matrix._rowNum;
+    _matrixData.reset(new float[_colNum * _rowNum]);
+    memcpy(_matrixData.get(), matrix._matrixData.get(), _colNum * _rowNum * sizeof(float));
+    return *this;
+}
+
 string Matrix::to_string() {
     std::string resString = "Dim: " + std::to_string(_colNum) + ", " + std::to_string(_rowNum) + " |";
     for (size_t i = 0; i < _colNum * _rowNum; i++) {

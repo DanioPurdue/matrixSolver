@@ -1,8 +1,14 @@
-#include "MatrixService.hpp"
+#include <iostream>
+#include <boost/asio.hpp>
+#include <boost/system/error_code.hpp>
+#include <string>
+#include "server/MatrixService.hpp"
 #include "matrix/Matrix.hpp"
 using namespace boost;
 
-MatrixService::Service(std::shared_ptr<asio::ip::tcp::socket> sock):m_sock(sock) {}
+MatrixService::MatrixService(std::shared_ptr<asio::ip::tcp::socket> sock):m_sock(sock){
+
+}
 
 //the start handling has two function call, it first parse and figure out the request method, 
 //based on the request method, it figure out the right approach.
@@ -11,7 +17,7 @@ void MatrixService::StartHandling() {
     [this](const boost::system::error_code& ec, std::size_t bytes_transferred)
     {
         //check the request type of the first read
-        if (ec != 0) {
+        if (ec.value() != 0) {
             std::cout<< "Error occured! Error code = " 
                 << ec.value()
                 << ". Message: " << ec.message();
@@ -25,7 +31,7 @@ void MatrixService::StartHandling() {
             // TODO:: need to make decision based on the request type
             boost::asio::streambuf buf;
             boost::asio::async_read(*m_sock.get(), buf, [this, &buf](const boost::system::error_code& ec, std::size_t bytes_transferred){
-                if (ec != 0) {
+                if (ec.value() != 0) {
                     std::cout<< "Error occured! Error code = " 
                     << ec.value()
                     << ". Message: " << ec.message();
@@ -33,9 +39,9 @@ void MatrixService::StartHandling() {
                     return;
                 }
                 const char * rawBytes = boost::asio::buffer_cast<const char *>(buf.data());
-                cout << "test | print raw data: " << buf.size() << endl;
+                std::cout << "test | print raw data: " << buf.size() << std::endl;
                 size_t offset(0);
-                m_request = parse_matrix(rawBytes, offset, buf.size());
+                m_request = parseMatrix(rawBytes, offset, buf.size());
                 onRequestReceived(ec, bytes_transferred);
             });
         }
@@ -43,7 +49,7 @@ void MatrixService::StartHandling() {
 }
 
 void MatrixService::onRequestReceived(const boost::system::error_code& ec, std::size_t bytes_transferred) {
-    if (ec != 0) {
+    if (ec.value() != 0) {
         std::cout<< "Error occured! Error code = " 
             << ec.value()
             << ". Message: " << ec.message();
@@ -63,7 +69,7 @@ void MatrixService::onRequestReceived(const boost::system::error_code& ec, std::
 }
 
 void MatrixService::onResponseSent(const boost::system::error_code& ec, std::size_t bytes_transferred) {
-    if (ec != 0) {
+    if (ec.value() != 0) {
          std::cout << "Error occured! Error code = " << ec.value() << ". Message: " << ec.message();
     }
     onFinish();
@@ -97,7 +103,7 @@ Matrix MatrixService::parseMatrix(const char * rawBytes, size_t & offset, size_t
     size_t spaceLoc = dimenData.find(" ");
     size_t rowNum = std::stoi(dimenData.substr(0, spaceLoc));
     size_t colNum = std::stoi(dimenData.substr(spaceLoc+1, dimenData.length() - spaceLoc - 1));
-    cout << "test | dimension row: " << rowNum << " col: " << colNum << endl;
+    std::cout << "test | dimension row: " << rowNum << " col: " << colNum << std::endl;
     size_t matrixSize(sizeof(float) * rowNum * colNum);
     offset += matrixSize;
     //create the matrix object

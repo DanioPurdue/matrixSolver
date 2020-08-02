@@ -1,3 +1,4 @@
+#pragma once
 namespace solverreq {
     /*
         The type of request that the server can handle. 

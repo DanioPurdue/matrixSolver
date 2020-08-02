@@ -9,15 +9,17 @@
 using namespace boost;
 class MatrixService {
 public:
-    Service(std::shared_ptr<asio::ip::tcp::socket> sock);
+    MatrixService(std::shared_ptr<asio::ip::tcp::socket> sock);
     void StartHandling();
 private:
     void onRequestReceived(const boost::system::error_code& ec, std::size_t bytes_transferred);
     void onResponseSent(const boost::system::error_code& ec, std::size_t bytes_transferred);
-    void std::string ProcessRequest(Matrix& input_mat);
-    Matrix readMatrix(tcp::socket & socket, boost::system::error_code & ec);
+    std::string ProcessRequest(Matrix& input_mat);
+    Matrix readMatrix(asio::ip::tcp::socket & socket, boost::system::error_code & ec);
+    Matrix parseMatrix(const char * rawBytes, size_t & offset, size_t total_size);
+    void onFinish();
 private:
-    solverreq::reqeust req;
+    solverreq::request req;
     std::shared_ptr<asio::ip::tcp::socket> m_sock;
     std::string m_response; // this response might be changed in the future
     Matrix m_request; //this can be changed as a pointer
