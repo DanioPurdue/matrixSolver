@@ -13,9 +13,13 @@ MatrixService::MatrixService(std::shared_ptr<asio::ip::tcp::socket> sock):m_sock
 //the start handling has two function call, it first parse and figure out the request method, 
 //based on the request method, it figure out the right approach.
 void MatrixService::StartHandling() {
-    asio::async_read(*m_sock.get(), boost::asio::buffer(&req, sizeof(solverreq::request)), 
+    asio::async_read_until(*m_sock.get(), buf, '\n',
     [this](const boost::system::error_code& ec, std::size_t bytes_transferred)
     {
+        std::cout<< "test | just in async_read " << "Bytes Recieved " << bytes_transferred << std::endl;
+        const char * rawBytes = boost::asio::buffer_cast<const char *>(buf.data());
+        memcpy(&req, rawBytes, sizeof(solverreq::request));
+        size_t offset(sizeof(solverreq::request));
         //check the request type of the first read
         if (ec.value() != 0) {
             std::cout<< "Error occured! Error code = " 
@@ -29,21 +33,9 @@ void MatrixService::StartHandling() {
             return;
         } else {
             // TODO:: need to make decision based on the request type
-            boost::asio::streambuf buf;
-            boost::asio::async_read(*m_sock.get(), buf, [this, &buf](const boost::system::error_code& ec, std::size_t bytes_transferred){
-                if (ec.value() != 0) {
-                    std::cout<< "Error occured! Error code = " 
-                    << ec.value()
-                    << ". Message: " << ec.message();
-                    onFinish();
-                    return;
-                }
-                const char * rawBytes = boost::asio::buffer_cast<const char *>(buf.data());
-                std::cout << "test | print raw data: " << buf.size() << std::endl;
-                size_t offset(0);
-                m_request = parseMatrix(rawBytes, offset, buf.size());
-                onRequestReceived(ec, bytes_transferred);
-            });
+            std::cout<<"test | about to make a second part" << std::endl;
+            m_request = parseMatrix(rawBytes, offset, buf.size());
+            onRequestReceived(ec, bytes_transferred);
         }
     });
 }
@@ -81,7 +73,7 @@ void MatrixService::onFinish() {
 
 std::string MatrixService::ProcessRequest(Matrix & input_mat) {
     std::cout << input_mat.to_string() << std::endl;
-    std::string response = "Response\n";
+    std::string response = "This is a dummy Response\n";
     return response;
 }
 

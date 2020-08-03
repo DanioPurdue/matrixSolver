@@ -2,7 +2,7 @@
 #include <boost/lexical_cast.hpp>
 #include <iostream>
 #include "server/SolverRequest.hpp"
-
+#include "matrix/Matrix.hpp"
 using namespace boost;
 using std::string;
 using std::cout;
@@ -22,6 +22,17 @@ void write_to_sock_request_(asio::ip::tcp::socket& sock, solverreq::request req)
     asio::write(sock, asio::buffer((void * ) (&req), sizeof(req)));
 }
 
+string readString(asio::ip::tcp::socket& sock, boost::system::error_code & ec) {
+    boost::asio::streambuf buf;
+    asio::read(sock, buf, ec);
+    if (ec != boost::asio::error::eof) {
+        return "unknown error occured";
+    }
+    std::istream input(&buf);
+    std::string response;
+    getline(input, response);
+    return response;
+}
 /*
 * Read the result as a string if the dimension is 0, 0 | <- this means that the result is not successful.
 */
@@ -57,6 +68,7 @@ int main(int argc, char *argv[]) {
     }
     //obtain the server ip address and port number from the command line 
     string ipAddr = argv[1];
+    boost::system::error_code ec;
     short portNum = boost::lexical_cast<short>(argv[2]);
     float x[3][4] = {0, 1 ,2.1 ,3 ,4 , 5 , 6 , 7 , 8 , 9 , 10 , 11};
     size_t arraySize_inByte = sizeof(x);
@@ -71,6 +83,9 @@ int main(int argc, char *argv[]) {
         cout << "test | send matrices." << endl;
         writeToSocketArr_(sock, (char *) x, arraySize_inByte, 3, 4);
         cout << "test | done sending them." << endl;
+        cout << "reading request ..." << endl;
+        string res_str = readString(sock, ec);
+        cout << "test | read result: " << res_str;
     } catch (boost::system::system_error &se) {
         cout << "System Error Occured | " << se.what() << endl;
         return se.code().value();

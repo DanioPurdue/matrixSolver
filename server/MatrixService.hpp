@@ -23,4 +23,5 @@ private:
     std::shared_ptr<asio::ip::tcp::socket> m_sock;
     std::string m_response; // this response might be changed in the future
     Matrix m_request; //this can be changed as a pointer
+    boost::asio::streambuf buf;
 };
