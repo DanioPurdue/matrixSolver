@@ -39,3 +39,15 @@ string Matrix::to_string() {
     }
     return resString;
 }
+
+float Matrix::get(size_t i, size_t j) const{
+    return *(_matrixData.get() + i * _colNum + j);
+}
+
+void Matrix::set(size_t i, size_t j, float val) {
+    if (i >= _rowNum || j >= _colNum) {
+        return;
+    }
+    _matrixData.get()[i * _colNum + j] = val;
+    return;
+}

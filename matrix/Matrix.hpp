@@ -2,6 +2,7 @@
 #pragma once
 #include <cstddef>
 #include <memory>
+
 using std::string;
 class Matrix {
     public:
@@ -13,4 +14,6 @@ class Matrix {
     Matrix(const Matrix & matrix);
     Matrix& operator=(const Matrix& matrix);
     string to_string();
+    float get(size_t i, size_t j) const;
+    void set(size_t i, size_t j, float val);
 };

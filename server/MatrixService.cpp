@@ -2,6 +2,11 @@
 #include <boost/asio.hpp>
 #include <boost/system/error_code.hpp>
 #include <string>
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/triangular.hpp>
+#include <boost/numeric/ublas/lu.hpp>
+#include <boost/numeric/ublas/io.hpp>
 #include "server/MatrixService.hpp"
 #include "matrix/Matrix.hpp"
 using namespace boost;
@@ -103,3 +108,31 @@ Matrix MatrixService::parseMatrix(const char * rawBytes, size_t & offset, size_t
     return Matrix(rowNum, colNum, rawBytes+offset-matrixSize);
 }
 
+std::shared_ptr<ublas::matrix<float>> MatrixService::convertMatToUblasMat(const Matrix & mat) {
+    std::shared_ptr<ublas::matrix<float>> ublas_mat_ptr(new ublas::matrix<float>(mat._rowNum, mat._colNum));
+    for (size_t i = 0; i < mat._rowNum; i++) {
+        for (size_t j = 0; j < mat._colNum; j++) {
+            (*ublas_mat_ptr.get())(i, j) = mat.get(i, j);
+        }
+    }
+    return ublas_mat_ptr;
+}
+
+bool MatrixService::inverseMatrix(const Matrix & input, Matrix & inverse) {
+    auto ublas_input_ptr = convertMatToUblasMat(input);
+    auto ublas_invert_ptr = convertMatToUblasMat(inverse);
+    ublas::permutation_matrix<std::size_t> pm(ublas_input_ptr->size1());
+    int res = lu_factorize(*ublas_input_ptr.get(), pm);
+    if (res != 0) {
+        return false;
+    }
+
+    (ublas_invert_ptr.get())->assign(ublas::identity_matrix<float>(ublas_input_ptr->size1()));
+    lu_substitute(*ublas_input_ptr.get(), pm, *ublas_invert_ptr.get());
+    for (size_t i = 0; i < input._rowNum; i++) {
+        for (size_t j = 0; j < input._colNum; j++) {
+            inverse.set(i, j, (*ublas_invert_ptr.get())(i, j));
+        }
+    }
+    return true;
+}
