@@ -9,6 +9,10 @@ using std::cout;
 using std::endl;
 using std::size_t;
 
+/*
+    data format
+    row_num col_num | arr_data
+*/
 void writeToSocketArr_(asio::ip::tcp::socket& sock, char * msgPtr, size_t msgSize, size_t height, size_t width) {
     string dim = std::to_string(height) + " " + std::to_string(width) + '|';
     std::unique_ptr<char[]> charPtr = std::make_unique<char []>(msgSize+1+dim.length());
@@ -85,7 +89,7 @@ int main(int argc, char *argv[]) {
         cout << "test | done sending them." << endl;
         cout << "reading request ..." << endl;
         string res_str = readString(sock, ec);
-        cout << "test | read result: " << res_str;
+        cout << "test | read result: " << res_str << endl;
     } catch (boost::system::system_error &se) {
         cout << "System Error Occured | " << se.what() << endl;
         return se.code().value();

@@ -79,6 +79,7 @@ std::string MatrixService::ProcessRequest(Matrix & input_mat) {
 
 Matrix MatrixService::parseMatrix(const char * rawBytes, size_t & offset, size_t total_size) {
     //get the dimension of the matrix
+    size_t start_pt = offset;
     string dimenData;
     for (size_t idx = offset; idx < total_size; idx++) {
         if (rawBytes[idx] == '|') {
@@ -93,7 +94,7 @@ Matrix MatrixService::parseMatrix(const char * rawBytes, size_t & offset, size_t
     }
     //get the dimension
     size_t spaceLoc = dimenData.find(" ");
-    size_t rowNum = std::stoi(dimenData.substr(0, spaceLoc));
+    size_t rowNum = std::stoi(dimenData.substr(start_pt, spaceLoc));
     size_t colNum = std::stoi(dimenData.substr(spaceLoc+1, dimenData.length() - spaceLoc - 1));
     std::cout << "test | dimension row: " << rowNum << " col: " << colNum << std::endl;
     size_t matrixSize(sizeof(float) * rowNum * colNum);
