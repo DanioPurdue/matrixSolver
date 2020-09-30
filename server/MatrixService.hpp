@@ -11,6 +11,10 @@ using namespace boost;
 namespace ublas = boost::numeric::ublas;
 class MatrixService {
 public:
+    /*
+        matrix service can only be called with (new MatrixService(sock))
+        because destructor will delete this in the end
+    */
     MatrixService(std::shared_ptr<asio::ip::tcp::socket> sock);
     void StartHandling();
 private:

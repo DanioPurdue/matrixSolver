@@ -75,6 +75,7 @@ public:
 	}
 
 	// Start the server.
+    // Server has threaded pools, and also accept asynchronous connections
 	void Start(unsigned short port_num,
 		unsigned int thread_pool_size) {
 
@@ -82,7 +83,7 @@ public:
 
 		// Create and start Acceptor.
 		acc.reset(new MatrixAcceptor(m_ios, port_num));
-		acc->Start();
+		acc->Start(); //this will return immediately.
 
 		// Create specified number of threads and 
 		// add them to the pool.
@@ -128,31 +129,3 @@ int main() {
     std::this_thread::sleep_for(std::chrono::minutes(10));
 	srv.Stop();
 }
-
-// /* recieve a message */
-// int main() { 
-//     int port_num = 80;
-//     std::cout<<"This is a matrix solver. Port num: " << port_num <<std::endl;
-//     boost::system::error_code ec;
-//     boost::asio::io_service io_service;
-//     // the alternative approach to the following part to instantiate first and then bind the port
-//     tcp::acceptor acceptor_(io_service, tcp::endpoint(tcp::v6(), port_num)); //acceptor represents acceptor socket which is pasisve
-//     while (1) {
-//         try {
-//             tcp::socket socket_(io_service); //instantiate asocket that used for teh connection
-//             std::shared_ptr<asio::ip::tcp::socket> sock(new asio::ip::tcp::socket(io_service));
-//             acceptor_.listen(MAXCONNSIZE);
-//             acceptor_.accept(*sock.get()); //switched to the active socket and start the connection
-//             cout << "socket has been accepted." << endl;
-//             (new MatrixService(sock))->StartHandling(); //TODO:: this need to be run in a new thread
-//             // cout << "request has been sent" << endl;
-//         } catch(boost::system::system_error & sysError) {
-//             cout << "System Error | Error Code: " <<sysError.code() << " | Error Message: " << sysError.what()<<endl;
-//         } catch (string & errMsg) {
-//             cout << "Error message: " << errMsg << endl;
-//         } catch (...) {
-//             cout << "recieved an invalid request" << endl;
-//         }
-//     }
-//     return 0;
-// }

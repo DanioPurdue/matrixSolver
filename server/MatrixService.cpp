@@ -21,7 +21,7 @@ void MatrixService::StartHandling() {
     asio::async_read_until(*m_sock.get(), buf, '\n',
     [this](const boost::system::error_code& ec, std::size_t bytes_transferred)
     {
-        std::cout<< "test | just in async_read " << "Bytes Recieved " << bytes_transferred << std::endl;
+        std::cout << "test | just in async_read " << "Bytes Recieved " << bytes_transferred << std::endl;
         const char * rawBytes = boost::asio::buffer_cast<const char *>(buf.data());
         memcpy(&req, rawBytes, sizeof(solverreq::request));
         size_t offset(sizeof(solverreq::request));
@@ -38,7 +38,8 @@ void MatrixService::StartHandling() {
             return;
         } else {
             // TODO:: need to make decision based on the request type
-            std::cout<<"test | about to make a second part" << std::endl;
+            // matrix inversion by default by now
+            std::cout << "test | about to make a second part" << std::endl;
             m_request = parseMatrix(rawBytes, offset, buf.size());
             onRequestReceived(ec, bytes_transferred);
         }
@@ -57,6 +58,7 @@ void MatrixService::onRequestReceived(const boost::system::error_code& ec, std::
     //process the request
     m_response = ProcessRequest(m_request);
     // initiate asynchronous write operation
+    // TODO:: add the matrix inversion to here
     asio::async_write(*m_sock.get(), asio::buffer(m_response), [this](
         const boost::system::error_code& ec,
         std::size_t bytes_transferred) {
@@ -67,11 +69,13 @@ void MatrixService::onRequestReceived(const boost::system::error_code& ec, std::
 
 void MatrixService::onResponseSent(const boost::system::error_code& ec, std::size_t bytes_transferred) {
     if (ec.value() != 0) {
-         std::cout << "Error occured! Error code = " << ec.value() << ". Message: " << ec.message();
+        std::cout << "Bytes transferred: " << bytes_transferred << std::endl;
+        std::cout << "Error occured! Error code = " << ec.value() << ". Message: " << ec.message();
     }
     onFinish();
 }
 
+//(new MatrixService(sock))->StartHandling();  this is how matrix service is called
 void MatrixService::onFinish() {
     delete this;
 }
