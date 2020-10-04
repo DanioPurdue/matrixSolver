@@ -12,6 +12,8 @@ using std::size_t;
 /*
     data format
     row_num col_num | arr_data
+    height is row number
+    width is column number
 */
 void writeToSocketArr_(asio::ip::tcp::socket& sock, char * msgPtr, size_t msgSize, size_t height, size_t width) {
     string dim = std::to_string(height) + " " + std::to_string(width) + '|';
@@ -74,9 +76,18 @@ int main(int argc, char *argv[]) {
     string ipAddr = argv[1];
     boost::system::error_code ec;
     short portNum = boost::lexical_cast<short>(argv[2]);
-    float x[3][4] = {0, 1 ,2.1 ,3 ,4 , 5 , 6 , 7 , 8 , 9 , 10 , 11};
+    std::size_t row_num = 3;
+    std::size_t col_num = 3;
+    float x[row_num][col_num] = {{1.0, 0, 0}, 
+                                {0, 2.0, 0},
+                                {0, 0, 3.0}};
     size_t arraySize_inByte = sizeof(x);
-    string hello("HelloWorld\n");
+    std::cout << "testing | Array size: " << arraySize_inByte << " actual array: " << x << std::endl;
+    for (size_t i = 0; i < row_num; i++) {
+        for (size_t j = 0; j < col_num; j++) {
+            std::cout<<x[i][j]<<std::endl;
+        }
+    }
     try {
         asio::ip::tcp::endpoint ep(asio::ip::address::from_string(ipAddr), portNum);
         asio::io_service ios;
@@ -85,7 +96,7 @@ int main(int argc, char *argv[]) {
         cout << "test | send request type." << endl;
         write_to_sock_request_(sock, solverreq::inverse);
         cout << "test | send matrices." << endl;
-        writeToSocketArr_(sock, (char *) x, arraySize_inByte, 3, 4);
+        writeToSocketArr_(sock, (char *) x, arraySize_inByte, row_num, col_num);
         cout << "test | done sending them." << endl;
         cout << "reading request ..." << endl;
         string res_str = readString(sock, ec);

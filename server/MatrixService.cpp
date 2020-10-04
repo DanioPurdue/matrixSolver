@@ -17,6 +17,7 @@ MatrixService::MatrixService(std::shared_ptr<asio::ip::tcp::socket> sock):m_sock
 
 //the start handling has two function call, it first parse and figure out the request method, 
 //based on the request method, it figure out the right approach.
+//it read all the way until the end
 void MatrixService::StartHandling() {
     asio::async_read_until(*m_sock.get(), buf, '\n',
     [this](const boost::system::error_code& ec, std::size_t bytes_transferred)
@@ -41,6 +42,7 @@ void MatrixService::StartHandling() {
             // matrix inversion by default by now
             std::cout << "test | about to make a second part" << std::endl;
             m_request = parseMatrix(rawBytes, offset, buf.size());
+            
             onRequestReceived(ec, bytes_transferred);
         }
     });
@@ -80,10 +82,19 @@ void MatrixService::onFinish() {
     delete this;
 }
 
+//
+//TODO implement the matrix inversion
 std::string MatrixService::ProcessRequest(Matrix & input_mat) {
-    std::cout << input_mat.to_string() << std::endl;
+    std::cout << "testing | input matrix: "<<input_mat.to_string() << std::endl;
+    std::shared_ptr<Matrix> inverse_ptr(new Matrix(input_mat));
+    if (!inverseMatrix(input_mat, *(inverse_ptr.get()))) {
+        std::cerr << "testing | matrix inversion failed! " << std::endl;
+    } else {
+        //print the inverted matrix
+        std::cout <<"testing | matrix after inversion: " <<inverse_ptr->to_string() << std::endl;
+    }
     std::string response = "This is a dummy Response\n";
-    return response;
+    return inverse_ptr->to_string();
 }
 
 Matrix MatrixService::parseMatrix(const char * rawBytes, size_t & offset, size_t total_size) {

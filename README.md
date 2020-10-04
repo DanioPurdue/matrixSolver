@@ -22,3 +22,5 @@ Matrix Solver server
 1. find the inverse of matrix
 2. solve the matrix
 
+## Notes about the structure of the code
+matrixSolver is the main code.
